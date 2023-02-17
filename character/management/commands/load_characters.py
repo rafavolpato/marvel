@@ -21,15 +21,15 @@ total_characters_updated = 0
 
 
 def get_character_data(character):
-    character_id = character.get("id")
-    name = character.get("name")
-    description = character.get("description")
-    picture = Character.get_picture_from_thumbnail(character.get("thumbnail"))
+    character_id = character["id"]
+    name = character["name"]
+    description = character["description"]
+    picture = Character.get_picture_from_thumbnail(character["thumbnail"])
     return character_id, name, description, picture
 
 
-def save_character_data(data):
-    character_id, name, description, picture = get_character_data(data)
+def save_character_data(character_data):
+    character_id, name, description, picture = get_character_data(character_data)
     obj, created = Character.objects.get_or_create(
         name=name,
         description=description,
@@ -49,6 +49,11 @@ def save_character_data(data):
 def http_get_json(endpoint, auth_params):
     try:
         response = requests.get(endpoint, params=auth_params)
+        if response.status_code != 200:
+            logger.error(
+                f"Error calling endpoint: {endpoint}. Status code: {response.status_code}"
+            )
+            raise SystemExit("Command terminated due to the previous errors.")
         return response.json()
     except requests.exceptions.RequestException as e:
         logger.error(
@@ -61,38 +66,30 @@ def http_get_json(endpoint, auth_params):
 def fetch_character(name, auth_params):
     endpoint = f"{BASE_URL}/characters?name={name}"
     data = http_get_json(endpoint, auth_params)
-    if data.get("data", {}).get("results"):
-        return data["data"]["results"][0]
-    return {}
+    return data["data"]["results"][0]
 
 
 def fetch_comic_characters(auth_params, comic_id, limit):
     endpoint = f"{BASE_URL}/comics/{comic_id}/characters?limit={limit}"
     data = http_get_json(endpoint, auth_params)
-    if data.get("data", {}).get("results"):
-        return data["data"]["results"]
-    return {}
+    return data["data"]["results"]
 
 
 def fetch_comics_by_character(character_id, auth_params, limit):
     endpoint = f"{BASE_URL}/characters/{character_id}/comics?limit={limit}"
     data = http_get_json(endpoint, auth_params)
-    if data.get("data", {}).get("results"):
-        return data["data"]["results"]
-    return {}
+    return data["data"]["results"]
 
 
 def save_spectrum_work_mates(character_data, auth_params):
-    character_id = character_data.get("id")
+    character_id = character_data["id"]
     if not character_id:
         return
-    available_comics = character_data.get("comics", {}).get("available", [])
+    available_comics = character_data["comics"]["available"]
     comics = fetch_comics_by_character(character_id, auth_params, available_comics)
     for comic in comics:
-        if not comic.get("resourceURI"):
-            continue
         comic_id = comic["resourceURI"].split("/")[-1]
-        available_characters = comic.get("characters", {}).get("available", [])
+        available_characters = comic["characters"]["available"]
         comic_characters = fetch_comic_characters(
             auth_params, comic_id, available_characters
         )
