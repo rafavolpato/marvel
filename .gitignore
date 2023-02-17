@@ -1,0 +1,8 @@
+/static/
+/env/
+/media/
+.idea/
+*.log
+*.sqlite3
+__pycache__
+.env
