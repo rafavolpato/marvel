@@ -5,7 +5,7 @@ This tool allows you to obtain information about Spectrum character and all othe
 ## Prerequisites
 
 - Docker
-
+test
 ## Installation
 
 1. Clone this repository
