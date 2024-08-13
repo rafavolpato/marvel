@@ -6,7 +6,7 @@ This tool allows you to obtain information about Spectrum character and all othe
 
 - Docker
 
-## Installation
+## Installationasdfasd
 
 1. Clone this repository
 ```
